@@ -3,36 +3,46 @@ id: configuring-plugs
 title: Configuring Plugs
 sidebar_position: 1
 ---
-Connecting your cross-chain smart contracts (i.e. Plugs) is as easy as creating a Plug on chain A and chain B, connecting both Plugs to their chain's canonical Socket deployment, and configuring both Plugs to reference one another. 
 
-Before getting started on configuring your Plugs, here are a few things to keep in mind: 
-- Socket allows only Plugs to update this configuration/connection at any point
-- Connection should be permissioned at the Plug level by either `owner keys`, protocol governance. Or, to make the connection immutable, you can block re-connection forever
-- Malicious configuration while connecting to Socket could cause unintended actions.
-- Connections are pair-wise, i.e you connect PlugA on ChainA to PlugB on ChainB. To extend your deployment to chain C, you would pair a PlugC on ChainC with Plugs on ChainA and ChainB respectively
+# How to Configure Your Plugs for Cross-Chain Interactions
 
-You can read more about Plugs [here](../../Learn/Components/Plugs.md). Once connected, you can use the `Outbound` and `Inbound` methods to send and receive messages.
+To initiate cross-chain communication, you need to create and connect Plugs on the chains involved. This process involves linking the Plugs to the Socket and ensuring each Plug references its counterpart on the connected chain. This section provides a step-by-step guide to achieve this effortlessly.
 
-## Configuring Plug Parameters
+:::info Key Points
 
-Plugs should be deployed on respective chains before they can be connected to their sibling Plugs deployed on other chains. Once you are ready with Plugs deployed on the networks you want to work with, its time to get Plugged!
+- Only Plugs can update the configuration/connection.
+- Permission at the Plug level is mandatory, achievable via `owner keys` or protocol governance.
+- Connections are pairwise, meaning each Plug on a chain connects to another on the desired chain.
 
-**Here's the parameters required for connection**
+:::
 
-| Parameters | Description |
-| --- | --- |
-| siblingChainSlug | ChainSlug of the network the sibling plug is deployed on, you can find all [chainSlugs here](../../dev-resources/Deployments.mdx) |
-| siblingPlug | Address of the plug deployed on the sibling chain |
-| inboundSwitchboard | Switchboard address used for receiving messages from siblingPlug |
-| outboundSwitchboard | Switchboard address used for sending messages to siblingPlug |
+Learn more about [Plugs here](../../Learn/Components/Plugs.md). Once connected, the `Outbound` and `Inbound` methods facilitate message transmission.
 
-You can find addresses for all verified Switchboards and Socket contracts in [Deployments](../../dev-resources/Deployments.mdx)
+## Step 1: Deploy Your Plugs
 
-## Connecting your Plugs
+Before connecting, ensure the Plugs are deployed on the respective chains. Each Plug then connects to its sibling on the other chain to establish a communication link.
 
-Once you have the Socket address you are connecting to, you just need call the `connect` method on it to configure your Plug on that chain. Remember, you need to call `connect` on both the chains you want to work with.
+## Step 2: Gather Connection Parameters
 
-Below is a quick example for how your Plug can call the `connect` method on Socket
+To connect the Plugs, you need the following parameters:
+
+| Parameter             | Description                                                                                                                            |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `siblingChainSlug`    | The ChainSlug of the network where the sibling plug resides. Check the [full list of chainSlugs](../../dev-resources/Deployments.mdx). |
+| `siblingPlug`         | The address of the plug on the sibling chain.                                                                                          |
+| `inboundSwitchboard`  | The switchboard address for receiving messages.                                                                                        |
+| `outboundSwitchboard` | The switchboard address for sending messages.                                                                                          |
+
+:::tip Quick Overview
+Switchboards are configurable, permissionless bundles essential in the authentication and execution of packets for cross-chain data transfer. They handle packet authentication, manage storage and verification with Capacitors and Decapacitors, and set minimum fees for packet validation. Developers can use existing Switchboards or create and register their own to meet specific application needs.
+:::
+You can find verified Switchboards and Socket contract addresses in the [Deployments section](../../dev-resources/Deployments.mdx).
+
+## Step 3: Execute the Connection
+
+Call the `connect` method on the Socket to configure the Plugs on both chains. Use the parameters gathered in Step 2. Ensure you have the required permissions to execute this action.
+
+Here is an example demonstrating the connection process:
 
 ```javascript
     ISocket socket = ISocket(socket_address);
@@ -46,7 +56,7 @@ Below is a quick example for how your Plug can call the `connect` method on Sock
         // ensure its permissioned
         require(msg.sender == AUTHORISED_CONNECTOR, "Caller is not authorised to make make connections");
 
-        // finally just call the socket to connect 
+        // finally just call the socket to connect
         socket.connect(
             siblingChainSlug,
             siblingPlug,
@@ -56,14 +66,17 @@ Below is a quick example for how your Plug can call the `connect` method on Sock
   }
 ```
 
-## Testing your connection
-Once you are done connecting, the transaction will emit a log called `PlugConnected`
+## Step 4: Verify the Connection
 
-For reference, checkout [this example tx](https://goerli.etherscan.io/tx/0x37040ec23ae744c8e4ea2961ceae8a4f32abaf04cc112c017089e95ceefb1653#eventlog) of connecting a Plug
-<img src="/img/plug-connected.png" />
+A successful connection triggers the emission of a PlugConnected log. Verify this occurrence and confirm the connection's success.
 
-Furthermore, you can do the following to check the connection is successful :
-- Call the `getPlugConfig` function on the Socket contract that returns the config for your Plug for a given destination ChainSlug
-- Use the [Check Connection API](../../dev-resources/APIReference/CheckConnection.md) that reads the configs and aids you to make sure your connection is correct
+Here's an example of a transaction emitting [PlugConnected](https://goerli.etherscan.io/tx/0x37040ec23ae744c8e4ea2961ceae8a4f32abaf04cc112c017089e95ceefb1653#eventlog).
+
+Additionally, validate the connection by:
+
+- Calling `getPlugConfig` on the Socket contract to fetch your Plug’s configuration for the specified ChainSlug.
+- Utilizing the [Check Connection API](../../dev-resources/APIReference/CheckConnection.md) to read the configurations, ensuring the connection is accurate.
+
+With these steps, your Plugs are now connected, and you’re set to initiate cross-chain communication seamlessly.
 
 <!-- // TODO: ADD GIF; ITs time to send it -->

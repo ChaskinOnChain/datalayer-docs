@@ -4,15 +4,38 @@ title: Glossary
 sidebar_position: 1
 ---
 
-We have introduced a lot of new terms and that is by design. We think for something as critical as AMB's nothing should be assumed or taken for-granted. We think these new terms are accurate and will encourage people to look into the docs/code and discourage assumptions.
+Understanding the terminology is crucial for grasping the workings of the protocol.
 
-Here is a quick run-down of some of the terms that you will come across the entire documentation:
-- **Socket**: Socket is the [core contract](https://github.com/SocketDotTech/socket-DL/blob/master/contracts/socket/Socket.sol) deployed on all networks that are supported. All core modules and functions exist within Socket
-- **Plug/Plugs**: Plugs are smart contract applications that connect with Socket to send and receive cross-chain messages via the [IPlug interface](../dev-resources/Interfaces/IPlug.md). Plugs are generally adapter contracts that connect your main Smart contract to the messaging infrastructure.
-- **Message**: Message is the payload you want to transmit along with relavent meta-data like destination chainSlug etc. 
-- **Packet**: Packets are a collection of messages sent from one chain to another. The validity of messages in a packet is verified on the destination chain based on the logic prescribed in the configured switchboard. [Read more](./Components/Packet.md).
-- **Sealed Packet**: As soon as the transmitter seals the packet on the source-chain with their signature it's called "SealedPacket". Read more about how transmitters work [here](./lifecycle.md#sending-a-message). 
-- **Capacitor**: Capacitor is responsibile for storing messages in the form of a Packet. The packet is released when the transmitter calls the `sealPacket` method on the capacitor. Capacitors allow for native batching of payloads for better gas-performance. [Read more](./Components/Capacitors.md).
-- **Switchboard**: Switchboards are the authenticaion/verification modules that allow developers to have custom verification for their payloads/messages. They can be permissionlessly built and deployed by the community. [Read more](./Components/Switchboards.md)
-- **Transmitter**: Transmitters are the entities responsible for transmission of Packet across layers, their activity is completely on-chain and managed by TransmitManager. [Read more](./Components/TransmitManager.md)
-- **ChainSlug**: ChainSlug is a unique identifier for a particular network or Socket deployment. It's different than Chain ID or Network ID used on EVM networks. You can find the assigned ChainSlugs in the [deployments section](../dev-resources/Deployments.mdx)
+#### Core Components
+
+- **Socket**: The central contract deployed across all supported networks, housing all core modules and functions. [More about Socket](https://github.com/SocketDotTech/socket-DL/blob/master/contracts/socket/Socket.sol).
+- **Plug/Plugs**: Adapter contracts enabling smart contract applications to connect with Socket for cross-chain messaging via the [IPlug interface](../dev-resources/Interfaces/IPlug.md).
+- **ChainSlug**: A unique identifier distinguishing specific network or Socket deployments, it's different from from Chain ID or Network ID on EVM networks. [Specific Chain Slugs](/dev-resources/deployment-addresses).
+
+#### Messaging
+
+- **Message**: The payload intended for cross-chain transmission, accompanied by relevant metadata such as the destination ChainSlug.
+- **Packet**: A collection of messages transmitted between chains, validated at the destination chain via the logic in the assigned switchboard. [Explore Packets](./Components/Packet.md).
+- **Sealed Packet**: A packet signed and sealed by the transmitter on the source chain, marking it ready for submission on the destination chain. [Transmitter Details](./lifecycle.md#sending-a-message).
+
+#### Storage and Verification
+
+- **Capacitor**: A component tasked with storing messages in packet form, optimizing gas performance through native batching of payloads. The packet is released when the transmitter calls the `sealPacket` method on the capacitor. [Capacitor Insights](./Components/Capacitors.md).
+- **CapacitorFactory**: An upgradable contract listing available Capacitors, integral for message security and protocol flexibility.
+- **Switchboard**: Authentication and verification modules that support custom payload verification protocols and can be permissionlessly created and deployed. [Switchboard Overview](./Components/Switchboards.md).
+
+#### Transmission Process
+
+- **Transmitter**: Entities mandated with the on-chain activity of transmitting packets across layers, governed by the TransmitManager.
+- **TransmitManager**: Manages transmitter operations, including leader selection, fee collection, and transmitter set management. [For More](./Components/TransmitManager.md).
+
+#### Fee Structure [(More On Fees)](http://localhost:3000/Learn/Concepts/fees)
+
+- **Transmission Fees**: Fees attributed to transmitters for sealing and proposing packets across chains.
+- **Switchboard Fees**: Compensation for watchers verifying packet validity on the destination chain.
+- **Execution Fee**: Fees directed to executors for processing the message payload on the destination chain.
+
+#### Off-Chain Agents
+
+- **Executors**: Workers that execute messages from the Packet on the destination chain by calling the inbound function on the Plugs.
+- **Watchers**: Entities that monitor and verify the validity of packets on the destination chain, their role varies depending on the switchboard used.

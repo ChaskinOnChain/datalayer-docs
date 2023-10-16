@@ -3,9 +3,12 @@ id: receiving
 title: Receiving messages
 sidebar_position: 3
 ---
-Plugs on destination network need to implement `inbound()` to handle incoming messages.
-<!-- // TODO link interface -->
-Socket calls the `inbound` function on the destination Plug when sending the payload. The `inbound()` should follow the interface mentioned in the interface mentioned here. 
+
+Plugs on the destination network implement an `inbound()` method to process incoming messages. This method is called upon by Socket to deliver the payload.
+
+### Implementing the `Inbound()` Method
+
+Socket calls the `inbound` function on the destination Plug when sending the payload. This function is tasked with executing the received message from the source chain.
 
 ```javascript
 interface IPlug {
@@ -22,28 +25,26 @@ interface IPlug {
 }
 ```
 
-:::note
-
-Only [`Socket`](../../dev-resources/Deployments.mdx) on a given chain should be allowed to call the `inbound` method on a Plug as seen in the example below.
-
+:::info Security Note
+Ensure that only the [`Socket`](../../dev-resources/Deployments.mdx) is authorized to call the `inbound()` method on your Plug. This restriction enhances security and integrity in message handling.
 :::
 
-<br />
+### Example: Handling Incoming Messages
 
-Your Plug on the destination network can look something like below. In the below snippet we assume the payload is a `uint256`.
+Below is a practical example of a Plug configured to receive and process incoming messages. In this instance, we're decoding the payload into a `uint256` data type.
 
 ```javascript
-    uint256 number;
+uint256 number; // A variable to store the decoded payload
 
-    function inbound(
-        uint32 siblingChainSlug_,
-        bytes calldata payload_
-        ) external payable {
-            // Make sure the caller is Socket contract only
-            require(msg.sender == address(socket), "Not Socket");
+function inbound(
+uint32 siblingChainSlug*,
+bytes calldata payload*
+) external payable {
+// Ensure the call is made by the Socket only
+require(msg.sender == address(socket), "Caller is not the Socket");
 
-            // you can do anything in this function
-            // payload can be decoded to do anything
-            number = abi.decode(payload)
-    }
+    // Decode and process the payload
+    number = abi.decode(payload_, (uint256));  // Adjust the data type as per your requirements
+
+}
 ```

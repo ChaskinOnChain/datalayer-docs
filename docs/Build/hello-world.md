@@ -1,19 +1,43 @@
 ---
 id: hello-world
-title: Speed Run DL 
+title: Speed Run DL
 sidebar_position: 1
 ---
 
-In this speed run tutorial, we'll be writing a contract to send/receive messages between chains. This is a code along tutorial, you can copy the code snippets into Remix or the dev environment of your choice. In case you are stuck, you can take peak at the [entire code on GitHub](https://github.com/SocketDotTech/socketDL-examples/blob/main/src/SpeedRunDL/SocketSpeedRunGoerli.sol). We'll be highlighting key functions and what they do throughout the tutorial. Some configuration variables have been hardcoded in the example.
+Welcome to the SocketCL speed run tutorial! In this interactive guide, you’ll create a contract to send and receive messages between chains. Utilize the code snippets below and follow along in [Remix](https://remix.ethereum.org/) or any IDE of your choice. Stuck or need reference? The entire code is available on [GitHub](https://github.com/SocketDotTech/socketDL-examples/blob/main/src/SpeedRunDL/SocketSpeedRunGoerli.sol).
 
-We'll be deploying the same copy of the contract on Goerli and Mumbai testnet and sending the message "Hello World" from Goerli to Mumbai. You can also deploy it on any [supported networks](../dev-resources/Deployments.mdx). Let's get started!
+:::tip Quick Note
+We're using hardcoded configuration variables for Goerli and Mumbai networks to streamline the process!
+:::
 
+### Objective
 
-### Step 1 : Boilerplate code 
+We aim to deploy a contract on both Goerli and Mumbai testnets and execute a "Hello World" message transmission from Goerli to Mumbai. A list of other [supported networks](../dev-resources/Deployments.mdx) is also available.
 
-Below is the boilerplate code needed to get started. `ISocket` is the interface used by our contract to interact with Socket. 
+### Prerequisites
 
-`Hello World` is the contract which we'll be writing to send/receive messages.
+Before beginning, ensure you have gas funds on both Goerli and Mumbai. If you don't, use the faucets below:
+
+- **Goerli**: Obtain gas funds from [Goerli Faucet](https://goerlifaucet.com/).
+- **Mumbai**: Get your gas funds from [Mumbai Faucet](https://mumbaifaucet.com/).
+
+:::info Registration Required
+Sign up with Alchemy to access both faucets.
+:::
+
+### Step 1: Boilerplate Code
+
+We initiate with the essential code, introducing the `ISocket` interface and the `HelloWorld` contract.
+
+#### ISocket Interface
+
+This interface enables interaction with Socket, offering functions for messaging, connections, and fee calculations.
+
+#### HelloWorld Contract
+
+Our main contract where we’ll implement the cross-chain messaging functionalities.
+
+Copy the provided code into [Remix](https://remix.ethereum.org/) or your favorite IDE, and we’ll incrementally build upon the `HelloWorld` contract.
 
 ```javascript
 // SPDX-License-Identifier: GPL-3.0
@@ -50,17 +74,27 @@ contract HelloWorld {
 }
 ```
 
-### Step 2 : Initialise state variables, events, modifiers
+### Step 2 : Initialise State Variables, Events, Modifiers
 
-#### State variables
-`message` is the message which will be set on the remote plug
+We will now declare our state variables, events, and modifiers to manage messages, authentication, and errors.
 
-`destGasLimit` is the gas limit of setting the message on the destination chain, this value varies depending on the chain.
+#### State Variables
 
-You can learn more about the other variables in [Configuring Plugs](./contract-setup/configuring-plugs.md)
+- `message`: The string set on the remote plug.
+- `destGasLimit`: The gas limit for setting the message on the destination chain.
+- Other configurations specific to Goerli and Mumbai testnets.
 
 #### Events
-`MessageSent` is emitted when a message is sent from the source plug and `MessageReceived` is emitted when the message is received on the destination plug.
+
+- `MessageSent`: Triggered when a message is sent.
+- `MessageReceived`: Triggered upon message receipt.
+
+#### Modifiers
+
+- `isOwner`: Ensures only the owner can execute certain functions.
+- `isSocket`: Ensures only the Socket can call certain functions.
+
+Add the following code to the `HelloWorld` contract:
 
 ```javascript
     string public message = "Hello World";
@@ -100,10 +134,15 @@ You can learn more about the other variables in [Configuring Plugs](./contract-s
 
 ### Step 3 : Config Functions
 
-`connectPlug` function connects our Hello World [Plug](../Learn/glossary.md) to its sibling Plug on another chain. This connection is required for the Plugs to send/receive messages from one another.
+We'll add a function to establish a connection between our `HelloWorld` plug and another plug on a different chain, enabling them to exchange messages.
 
-```javascript 
+#### `connectPlug` Function
 
+This function utilizes the `connect` method from the `ISocket` interface, linking our contract to a sibling plug on another chain. It ensures that messages can be seamlessly sent and received between the connected plugs.
+
+Add the `connectPlug` function to your `HelloWorld` contract:
+
+```javascript
     function connectPlug(address siblingPlug_) external isOwner {
         ISocket(socket).connect(
             remoteChainSlug,
@@ -112,14 +151,25 @@ You can learn more about the other variables in [Configuring Plugs](./contract-s
             outboundSwitchboard
         );
     }
-
 ```
 
-### Step 4 : Sending messages 
+:::info Connectivity
+The `connectPlug` function is crucial. It bridges your contract to a counterpart on another chain, opening pathways for cross-chain messages.
+:::
 
-`sendMessage` sends the "Hello World" message to the remote chain. This function calls Socket and initiates the `outbound` cross-chain message
+### Step 4 : Sending Messages
 
-`_getMinimumFees` fetches the fees for including messages in [Packets](../Learn/Components/Packet.md) & executing them. This can be used to verify sufficient fees are passed when sending the message. You can learn more about this in [Fees](../Learn/Concepts/Fees.md).
+Next, we'll implement a function to send a "Hello World" message to another blockchain. We'll ensure that the message incurs sufficient fees for packet inclusion and execution.
+
+#### `sendMessage` Function
+
+This function encodes the "Hello World" message into bytes, calculates the necessary fees, and initiates the cross-chain message via Socket's `outbound` method.
+
+#### `_getMinimumFees` Function
+
+This helper function retrieves the minimum fees required for the message, ensuring it meets the necessary criteria for successfully including messages in [Packets](../Learn/Components/Packet.md) and executing them. You can learn more about this in [Fees](../Learn/Concepts/Fees.md).
+
+Insert the following code to enable message sending:
 
 ```javascript
     function sendMessage() external payable {
@@ -156,11 +206,19 @@ You can learn more about the other variables in [Configuring Plugs](./contract-s
     }
 ```
 
-### Step 5 : Receiving Messages 
+### Step 5 : Receiving Messages
 
-`inbound` is called by Socket on the destination Plug for executing the message once it's verified. More in this in [Lifecycle](../Learn/lifecycle.md)
+Now, let’s focus on receiving and processing messages. We'll implement functions to handle incoming messages and update the contract's state accordingly.
 
-`_receiveMessage` sets the value of the new message and emits the `MessageReceived` event
+#### `inbound` Function
+
+This is invoked by Socket to deliver the message to the destination plug. It decodes the payload and passes it to the `_receiveMessage` function for processing.
+
+#### `_receiveMessage` Function
+
+This internal function updates the `message` state variable with the received message and emits a `MessageReceived` event to log the operation.
+
+Here’s the code snippet to enable message receiving:
 
 ```javascript
     function _receiveMessage(
@@ -180,61 +238,79 @@ You can learn more about the other variables in [Configuring Plugs](./contract-s
     }
 ```
 
-### Step 6 : Deploying contracts
+### Step 6: Deploying Contracts
 
-We'll be deploying the same contract on Goerli and Mumbai testnets. However, to make it easier to send our first message, we've hardcoded some configuration variables specific to Goerli and Mumbai. Click the links below to deploy each of them
+Now that you've followed along and have the contract ready, it's time to deploy. You've been building with hardcoded values for Goerli, so you can proceed to deployment directly if you wish. Alternatively, you can use the complete code provided for convenience.
 
-#### Goerli
-[🚀 Deploy Goerli contract on Remix](https://remix.ethereum.org/#url=https://github.com/SocketDotTech/socketDL-examples/blob/main/src/SpeedRunDL/SocketSpeedRunGoerli.sol)
+#### Deploy on Goerli Testnet
 
-[📄 Goerli contract on GitHub](https://github.com/SocketDotTech/socketDL-examples/blob/main/src/SpeedRunDL/SocketSpeedRunGoerli.sol)
+You can either:
 
-#### Mumbai
-[🚀 Deploy Mumbai contract on Remix](https://remix.ethereum.org/#url=https://github.com/SocketDotTech/socketDL-examples/blob/main/src/SpeedRunDL/SocketSpeedRunMumbai.sol)
+- Deploy the contract you’ve been building by following the tutorial.
+- Use this [Remix link with pre-loaded Goerli contract](https://remix.ethereum.org/#url=https://github.com/SocketDotTech/socketDL-examples/blob/main/src/SpeedRunDL/SocketSpeedRunGoerli.sol).
+- View and copy the [complete Goerli contract code from GitHub](https://github.com/SocketDotTech/socketDL-examples/blob/main/src/SpeedRunDL/SocketSpeedRunGoerli.sol).
 
-[📄 Mumbai contract on GitHub](https://github.com/SocketDotTech/socketDL-examples/blob/main/src/SpeedRunDL/SocketSpeedRunMumbai.sol)
+Compile:
+<img src="/img/compiler-hello-world.png" width="500px"/>
 
-You can head over to Remix and compile the code for `SpeedRunGoerli`
-
- <img src="/img/compiler-hello-world.png" width="500px"/>
-
-Then, deploy it
-
+Then Deploy:
 <img src="/img/deploy-hello-world.png" width="500px"/>
 
-<br/><br/>
+#### Deploy on Mumbai Testnet
 
-You'll then have to deploy the `SpeedRunMumbai` contract following the same steps.
+For deploying on Mumbai, you need to update the hardcoded values in your contract to:
 
+```javascript
+address public socket = 0x718826B533DF29C30f2d3f30E585e405eeF22784; // Socket Address on Mumbai
+address public inboundSwitchboard = 0x27513Ed43490B6e0801e724ff1b1637be657447E; // FAST Switchboard on Mumbai
+address public outboundSwitchboard = 0x27513Ed43490B6e0801e724ff1b1637be657447E; // FAST Switchboard on Mumbai
+```
 
-### Step 7 : Configuration 
+Or use the complete Mumbai contract by either:
 
-Once you've deployed the contracts on Goerli and Mumbai, call the `connectPlug` function with the address of the contract deployed on the other chain. You need to do this on both contracts deployed on respective chains.
+- Accessing it directly on [Remix](https://remix.ethereum.org/#url=https://github.com/SocketDotTech/socketDL-examples/blob/main/src/SpeedRunDL/SocketSpeedRunMumbai.sol).
+- Viewing and copying the [complete Mumbai contract code from GitHub](https://github.com/SocketDotTech/socketDL-examples/blob/main/src/SpeedRunDL/SocketSpeedRunMumbai.sol).
 
-<img src="/img/connectPlug-hello-world.png" width="500px"/>
+Compile and deploy your contract on the respective testnets, and you're all set to proceed!
 
-<br/><br/>
+:::success Deployment Complete
+Great job! With your contracts deployed on both Goerli and Mumbai, you’re ready to explore the dynamics of cross-chain communication!
+:::
 
-For instance, on Goerli you would call `connectPlug` with the address of the contract deployed on Mumbai and vice-versa. This establishes a connection between the two Plugs deployed and you can now send messages between them!
+### Step 7: Configuration
 
-### Step 8 : Hello World
+After deploying the contracts on both Goerli and Mumbai:
 
-To send your first message, call the `sendMessage` function on Goerli. You need to send a fee in ETH as `value` when calling `sendMessage`. This fee can be calculated using the [Fee Estimate API](../dev-resources/APIReference/EstimateFee.md) 
+- Call the `connectPlug` function on each contract, providing the address of its counterpart on the other chain.
 
-https://surge.dlapi.socket.tech/estimate-fees?srcChainSlug=5&dstChainSlug=80001&integrationType=FAST&msgGasLimit=100000
+  ![Connect Plug](/img/connectPlug-hello-world.png)
 
-You can enter the `totalFee` returned by this API as `value` when sending the transaction
+:::info Configuration Clarity
+This links the two contracts, enabling cross-chain messaging. For precision:
 
-<img src="/img/sendMessage-hello-world.png" width="400px"/>
+- On Goerli, input the Mumbai contract's address.
+- On Mumbai, input the Goerli contract's address.
 
-<br/><br/>
+Ensure the configuration is accurate. Double-check the addresses to guarantee seamless communication between the contracts on different chains.
+:::
 
-That's it! You can now track the status of your message using the [Status Tracking API](../dev-resources/APIReference/Track.md). Once your message is executed on Mumbai, you'll be able to see the `message` value set to "Hello World" on Mumbai.
+### Step 8: Send Your First Message
 
-<img src="/img/success-hello-world.png" width="400px"/>
+1. Call the `sendMessage` function on the Goerli contract, supplying an ETH fee as `value`.
 
-<br/><br/>
+   - Calculate the fee using the [API Request For Goerli To Mumbai Fees](https://surge.dlapi.socket.tech/estimate-fees?srcChainSlug=5&dstChainSlug=80001&integrationType=FAST&msgGasLimit=100000)
+     - For More Info on the Fee Estimate: [Fee Estimate API Docs](../dev-resources/APIReference/EstimateFee.md).
+   - Use the `totalFee` from the API response as the `value`.
 
+   ![Send Message](/img/sendMessage-hello-world.png)
+
+2. Track your message's status with the [Status Tracking API](../dev-resources/APIReference/Track.md).
+
+   - For our specific request you can go to `https://prod.dlapi.socket.tech/messages-from-tx?srcChainSlug=5&srcTxHash=<YourTxHash>`. Replace `<YourTxHash>` with your actual transaction hash.
+
+3. Once executed on Mumbai, the `message` value updates to "Hello World".
+
+   ![Success](/img/success-hello-world.png)
 
 :::note You're Plugged!
 

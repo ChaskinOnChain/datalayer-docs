@@ -1,0 +1,41 @@
+---
+id: retry-execute
+title: Message Failure & Retry
+sidebar_position: 5
+---
+
+Messages may fail to execute on the destination chain due to various reasons. This section outlines these reasons and suggested remedial actions.
+
+### Causes of Failure
+
+#### 1. Insufficient Gas Limit
+
+The message execution may fail if the `gasLimit` required on the destination chain exceeds the `msgGasLimit` set during message delivery on the source Plug.
+
+**Resolution:** Increase the `msgGasLimit` on the source Plug and resend the message.
+
+#### 2. Insufficient Fees
+
+If the fees sent on the source chain are inadequate to cover the message execution fees on the destination chain, the message will fail.
+
+**Resolution:** Ensure adequate fees are provided when sending the message from the source chain.
+
+#### 3. Inbound Call Failure
+
+The message may fail if there's a failure in the `inbound` call on the Plug, which can be due to an issue with the logic in the inbound method.
+
+**Resolution:** Review and correct the logic in the inbound method, and resend the message.
+
+#### 4. Packet Verification Pending
+
+The message execution can fail if the packet containing the message has not yet been verified.
+
+**Resolution:** Wait for the packet verification to complete.
+
+### Retry Mechanism
+
+Executors simulate the message execution transaction and check for its success. If successful, they execute the message on-chain. If not, they keep trying to simulate the transaction for 2-3 hours. If the simulation is still unsuccessful after this period, the executors stop, and the message remains unattended.
+
+### Rectifying Failed Messages
+
+Currently, there is no automatic mechanism to retry unattended messages. If a message fails to execute for any of the reasons above, it needs to be resent from the source chain, ensuring that the cause of the initial failure has been addressed.

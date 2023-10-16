@@ -4,15 +4,35 @@ title: App Chain Bridge
 sidebar_position: 1
 ---
 
-import Tab from "../../../src/components/Tab";
+App Chain Bridge, also known as SuperBridge, is a bespoke token bridge engineered for App Chains or custom roll-ups. Users can configure this bridge as either a Lock-Mint bridge for existing tokens or a Burn-Mint bridge for tokens that support Universal ERC20s.
 
+One of the notable implementations of the App Chain Bridge is its role in enabling USDC bridging on [Aevo's Optimistic App-Chain](https://mirror.xyz/0x6FD2bd90D50eDEe139103454116F252f6F5eC928/s602ukNdxwBkr9imWWO2MBgzpNny0O1ews_Nev75ppM).
 
-App Chain Bridge is a custom token bridge for App Chains or custom roll-ups. The bridge can be setup as a Lock-Mint bridge for existing tokens or a Burn-Mint bridge for tokens supporting Universal ERC20s
+:::info
+Explore the code and implementation details of the App Chain Bridge on [GitHub](https://github.com/SocketDotTech/app-chain-token).
+:::
 
-App Chain Bridge (SuperBridge) in production powering USDC bridging on [Aevo's Optimistic App-Chain](https://mirror.xyz/0x6FD2bd90D50eDEe139103454116F252f6F5eC928/s602ukNdxwBkr9imWWO2MBgzpNny0O1ews_Nev75ppM)
+## Aevo Bridge: A Case Study
 
-<Tab
-  heading="App Chain Bridge"
-  description=""
-  linkUrl="https://github.com/SocketDotTech/app-chain-token"
-/>
+Aevo introduced a native bridging system powered by Socket to facilitate zero-cost transfers from Arbitrum & Optimism. This innovation marked a significant milestone, making Aevo the first OP-Stack rollup to enable users beyond Ethereum to bridge USDC from Arbitrum & Optimism seamlessly.
+
+### Key Highlights
+
+- **Zero-Cost Transfers:** Users can transfer assets across chains without incurring bridging fees.
+- **Accessibility:** App rollups, previously restricted to Ethereum, can now access liquidity across various chains.
+- **Simplicity:** Users can deposit and trade on Aevo from major L2s without dealing with wrapped bridge assets.
+
+### How It Works
+
+1. Visit [app.aevo.xyz](https://app.aevo.xyz).
+2. Choose the chain from which you want to deposit.
+3. Your funds are deposited into the Aevo Exchange within minutes.
+4. Start trading immediately.
+
+### Expanding Connectivity
+
+The integration of Socket not only eliminates high bridging fees and the complexities of liquidity bootstrapping but also enables app rollups to extend their reach, accessing a plethora of liquidity pools available across diverse chains. This unprecedented level of connectivity empowers app rollups to offer users seamless, cost-effective cross-chain interactions.
+
+:::note
+With Socket’s integration, app rollups can launch with native connectivity to any chain, echoing the interoperability benefits akin to IBC for Cosmos-based chains.
+:::

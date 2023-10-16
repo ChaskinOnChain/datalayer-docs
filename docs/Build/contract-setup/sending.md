@@ -4,44 +4,53 @@ title: Sending messages
 sidebar_position: 2
 ---
 
-`Outbound` method on the Socket contract deployed on all networks allows Plugs to send messages to other Plugs across chains. Checkout the below section to understand how to use it. If you want to read more on how sending messages in Socket works, [read more here](../../Learn/lifecycle.md#sending-a-message).
+The `Outbound` method, integrated into the Socket contract deployed on all networks, facilitates sending messages across chains from one Plug to another. Before diving into the implementation, it's essential to ensure your Plugs on both chains are interconnected.
 
 ## Parameters
 
-| Parameters | Description |
-| --- | --- |
+| Parameters      | Description                                                      |
+| --------------- | ---------------------------------------------------------------- |
 | remoteChainSlug | ChainSlug of the network where you want to send your messsage to |
-| payload | The message you want to send to the plug on remoteChainSlug |
-| msgGasLimit | gasLimit required to execute the `payload` on remoteChainSlug |
+| payload         | The message you want to send to the plug on remoteChainSlug      |
+| msgGasLimit     | gasLimit required to execute the `payload` on remoteChainSlug    |
 
-In order to pay for cross-chain execution, you call the outbound function with the msg.value representing the amount of fees you want to pay. You can estimate the minimum amount of fees via the methods outlined here.
+Messages incur cross-chain execution fees, payable via `msg.value` when calling the `Outbound` function. Estimate the minimum required fees using the [provided methods](/dev-resources/APIReference/estimate-fees).
 
+### Example: Sending a "Hello, World!" Message
 
-## Sending your message
+Here’s a step-by-step example of sending a “Hello, World!” message across chains:
 
-Make sure you have connected your Plugs on both chains to each other before you call the outbound method
-Equipped with the payload we want to send, we can now call the outbound on Socket, below is a quick example
+1. **Ensure Plugs Are Connected**:
+   Make sure your Plugs on the sender and receiver chains are interconnected.
+
+2. **Prepare the Payload**:
+   Encode the message into the payload.
+
+3. **Call the `Outbound` Method**:
+   Invoke the `Outbound` method on the Socket, including the necessary parameters and fees.
 
 ```javascript
-    // Get Socket address from the deployments page for your network
-    ISocket socket = ISocket(_address);
+ISocket socket = ISocket(_address); // Retrieve the Socket address for your network
+uint32 remoteChainSlug = 1333; // Replace with the actual ChainSlug of the target network
+uint32 defaultGasLimit = 1000000; // Set an appropriate gas limit for the transaction
 
-    // THIS IS NOT AN ACTUAL SLUG, please get the right slug from the deployments page
-    uint32 remoteChainSlug = 1333;
-    uint32 defaultGasLimit = 1000000;
+    function sendHelloWorld() external payable {
+        bytes memory payload = abi.encode("Hello World");  // Encode the message into a payload
+        require(msg.value >= minFees, "Insufficient fees");  // Ensure adequate fees are provided
 
-    // send hello world to the sibling Plug we configured on chainSlug:1333
-    function SendHelloWorld(
-    ) external payable {
-        bytes memory payload = abi.encode("Hello World");
-        // msg.value should be equal to the minFees
-        socket.outbound{value: msg.value}(remoteChainSlug, defaultGasLimit, bytes32(0), bytes32(0), payload);
+        socket.outbound{value: msg.value}(remoteChainSlug, defaultGasLimit, bytes32(0), bytes32(0), payload);  // Send the message
     }
 ```
-<!-- // TODO: add API link -->
 
-Once the tx is finalised:
-- An event `MessageOutbound` is emitted by Socket containing all relavent details.
-- Your message will be allocated a unique ID called (`msgId`) you can look it up in the `MessageOutbound` log
- 
-You can use the tx-hash to track the delivery and execution on the destination chain via [this API](../../dev-resources/APIReference/Track.md).  
+### Message Transmission Confirmation
+
+Once the transaction is finalized:
+
+- A `MessageOutbound` event is emitted containing all relevant details.
+- The message is allocated a unique ID (`msgId`), which can be found in the `MessageOutbound` log.
+
+### Tracking Message Delivery
+
+Utilize the transaction hash to track the message's delivery and execution on the destination chain via the [Tracking API](../../dev-resources/APIReference/Track.md). This enables real-time monitoring of the message status until it reaches the intended recipient.
+
+For a detailed walkthrough of the message sending lifecycle, refer to the [comprehensive guide here](../../Learn/lifecycle.md#sending-a-message).

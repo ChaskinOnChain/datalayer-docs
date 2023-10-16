@@ -1,66 +1,60 @@
 ---
 id: testing-dl
-title: Testing integration
+title: Testing DL Integration
 sidebar_position: 3
 ---
 
-- Testing DL 
-- MockSocket -- how it works, local testing 
-- Testing Plug connection 
+In this section, we will cover the use of MockSocket for local testing and methods to verify the connection of your Plugs.
 
-### MockSocket
+### Utilizing MockSocket for Local Testing
 
-### Testing integration locally
-MockSocket is a test tool that Plugs can use to test their integration with Socket. MockSocket simulates the functionality of Socket without actually sending a cross-chain message. It does this by calling the `inbound` method on the Plug directly when an `outbound` message transaction is initiated. 
+MockSocket is a valuable tool designed to facilitate the local testing of your Plugs’ integration with Socket. It emulates Socket's functionality, allowing developers to test the `inbound` and `outbound` message transactions without initiating a cross-chain message.
 
-Plugs can use MockSocket to test their SC integration with Socket. Find example tests that utilise MockSocket in [`SocketDL-examples`](https://github.com/SocketDotTech/socketDL-examples/tree/main/test). Plugs can assert the intended state changes on the destination chain and verify successful execution of the message.
+Detailed examples of utilizing MockSocket for local testing can be found in the [SocketDL-examples repository on GitHub](https://github.com/SocketDotTech/socketDL-examples/tree/main/test).
 
-MockSocket is not an E2E testing solution for message delivery on Plugs. It does not account for validity of message, gasPrice hikes on blockchains etc. For E2E testing, Plugs can be deployed on any [supported testnets](../dev-resources/Deployments.mdx).
+:::note Important
+Remember, MockSocket is designed for local testing and is not suitable for end-to-end testing of message delivery, as it does not account for factors like message validity and dynamic gas prices. For comprehensive testing, deploy Plugs on [supported testnets](../dev-resources/Deployments.mdx).
+:::
 
-### Testing Plug connection
+### Verifying Plug Connection
 
-#### API
-The [Check Connection helper API](../dev-resources/APIReference/CheckConnection.md) can be used to verify a connection is successfully established between two Plugs.
+#### Using the API
 
+Employ the [Check Connection helper API](../dev-resources/APIReference/CheckConnection.md) to ascertain that a connection has been effectively established between two Plugs.
 
-#### On-chain
+#### On-Chain Verification
 
-Once the connection step is complete, you can verify the connection was successful by calling the `getPlugConfig()` method on Socket. This is a view function that returns the config of the plug for a given remote chain. If it returns the config, then the Plug connection is successful.
-
+Post-connection, validate its success by invoking the `getPlugConfig()` method on the Socket. This view function returns the configuration of the plug for a specified remote chain. A returned configuration indicates a successful connection.
 
 ```javascript
-/* 
-    EXAMPLE TO RETURN GOERLI PLUG CONFIG FOR CONNECTION MUMBAI TESTNET
-    CHAIN 5
-
-    PLUG ADDRESS : 0x876B15bc0963C3c1AcA50Adfc0685A458449E41d
-    SIBLING CHAIN ID : 80001
-
-    This script returns the configuration of a Plug for a given sibling chain
-*/
+// Example script to return the Goerli Plug configuration for connection to Mumbai Testnet Chain
 
 const { Contract, providers } = require("ethers");
 
-// SOCKET CONFIG
+// Define the ABI, RPC endpoint, and contract address
 const ABI = [
-    "function getPlugConfig(address plugAddress_, uint256 siblingChainSlug_) view returns (address siblingPlug, address inboundSwitchboard__, address outboundSwitchboard__, address capacitor__, address decapacitor__)"
+  /* ABI details here */
 ];
 const RPC = "https://rpc.ankr.com/eth_goerli";
 const CONTRACT_ADDRESS = "0xA78426325b5e32Affd5f4Bc8ab6575B24DCB1762";
 
-
-// PLUG CONFIG
+// Specify the Plug address and sibling chain slug
 const PLUG_ADDRESS = "0x876B15bc0963C3c1AcA50Adfc0685A458449E41d";
 const SIBLING_CHAIN_SLUG = 80001;
 
 const main = async () => {
-    const provider = new providers.JsonRpcProvider(RPC);
-    const contract = new Contract(CONTRACT_ADDRESS, ABI, provider);
-
-    const plugConfig = await contract.getPlugConfig(PLUG_ADDRESS, SIBLING_CHAIN_SLUG);
-
-    console.log(plugConfig);
-}
+  const provider = new providers.JsonRpcProvider(RPC);
+  const contract = new Contract(CONTRACT_ADDRESS, ABI, provider);
+  const plugConfig = await contract.getPlugConfig(
+    PLUG_ADDRESS,
+    SIBLING_CHAIN_SLUG
+  );
+  console.log(plugConfig);
+};
 
 main();
 ```
+
+:::tip
+Always ensure your ABI, RPC endpoint, and other configuration details are correct and up-to-date to achieve accurate and reliable results.
+:::

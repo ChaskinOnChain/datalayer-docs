@@ -1,0 +1,332 @@
+---
+id: example-counter
+title: Tutorial
+sidebar_position: 2
+---
+
+In this tutorial, you'll learn how to create, deploy, and interact with a cross-chain counter using SocketDL.
+
+### Development Environment
+
+:::info Choosing a Development Environment
+Foundry is recommended for those comfortable with command-line tools, while Remix provides a user-friendly interface for beginners and experts alike.
+:::
+
+Choose between Foundry, Remix, or any development environment of your choice.
+
+For Foundy or Local Users:
+
+:::tip Pre-requisites
+Make sure you have git installed to clone the repository. If not, you can download it [here](https://git-scm.com/downloads).
+:::
+
+Begin by cloning the GitHub repository to your local machine.
+
+```shell
+git clone https://github.com/SocketDotTech/socketDL-examples
+cd src/impl/Counter.sol
+```
+
+For Remix users, use the link below to load the Counter contract directly: [Load Counter in Remix](https://remix.ethereum.org/#url=https://github.com/SocketDotTech/socketDL-examples/blob/templates/src/impl/Counter.sol)
+
+### Code Walkthrough
+
+Begin by examining the Counter Contract, it inherits essential functions from the [`PlugBase` contract](https://github.com/SocketDotTech/socketDL-examples/blob/main/src/base/PlugBase.sol) for seamless integration with SocketDL.
+
+#### Key Functions
+
+#### 1. `setRemoteNumber`
+
+:::tip Function Insights
+This function initiates the Socket's `outbound` method to send a cross-chain message, updating the counter value on the target chain.
+:::
+
+The `setRemoteNumber` function accepts two parameters:
+
+- `newNumber_`: The new value to update the counter with
+- `toChainSlug_`: The Chain ID of the destination blockchain
+
+```javascript
+function setRemoteNumber(
+    uint256 newNumber_,
+    uint256 toChainSlug_
+) external payable {
+    _outbound(toChainSlug_, destGasLimit, msg.value, abi.encode(newNumber_));
+}
+```
+
+Here, `_outbound` is a method from the Socket, invoked to initiate the cross-chain message. The `newNumber_` is encoded into the message payload, and `toChainSlug_` identifies the destination chain.
+
+##### 2. `_receiveInbound`
+
+:::info Payload Decoding
+This function decodes the received payload and updates the counter value on the local chain. It's an integral part of the message receiving lifecycle.
+:::
+
+The `_receiveInbound` function is internally called when a message is relayed to the destination chain. It's triggered by the `inbound` function of the `PlugBase` contract.
+
+Inherited from the `PlugBase` Contract:
+
+```javascript
+function inbound(
+  uint256 siblingChainSlug_,
+  bytes calldata payload_
+) external payable {
+  require(msg.sender == address(socket), "no auth");
+  _receiveInbound(siblingChainSlug_, payload_);
+}
+```
+
+The `inbound` function checks the authenticity of the message (ensuring it originates from the Socket) and then calls `_receiveInbound`.
+
+In the `Counter` Contract:
+
+```javascript
+function _receiveInbound(
+    uint256,
+    bytes memory payload_
+) internal virtual override {
+    uint256 newNumber = abi.decode(payload_, (uint256));
+    setNumber(newNumber);
+}
+```
+
+Here, the `payload_` containing the new counter value is decoded, and `setNumber` updates the counter on the local chain. The local counter mirrors the update made on the originating chain, completing the cross-chain interaction.
+
+### Deployment
+
+Deploying the Counter contract involves a few steps to ensure it's properly configured and ready to interact with the blockchain. This section will guide you through the deployment process, both using Foundry and Remix.
+
+#### Constructor Arguments
+
+The `Counter` contract requires the address of the Socket contract when deploying. Retrieve the appropriate Socket address for your desired network from the [`deployments`](../Deployments.mdx) documentation.
+
+For this tutorial, we deploying the Counter contract on the Polygon and Optimism networks. Here are the respective Socket addresses for these networks:
+
+| Chain | Socket Address                               |
+| ----- | -------------------------------------------- |
+| 137   | `0x4c8D9ab0F4f6A959092248982bd58D2C964957d6` |
+| 10    | `0x2959eBC446A4dFB30b04AfD62B0cBD3F914306B4` |
+
+:::info Command Line Placeholders Replacement
+Replace the placeholders in the commands with the actual values to ensure proper contract interaction.
+:::
+
+#### Foundry Deployment
+
+1. Install Foundry using the command:
+   ```shell
+   forge install
+   ```
+2. Compile and deploy two Counter contracts, one on each chain, replacing the placeholders with the appropriate values:
+   ```shell
+   forge create --rpc-url <SENDING_RPC> \
+   --constructor-args <SOCKET_CONTRACT_ADDRESS> \
+   --private-key <PRIVATE_KEY> \
+   src/impl/Counter.sol:Counter
+   ```
+
+#### Remix Deployment
+
+Remix is a web-based IDE that allows for smart contract deployment directly from the browser. Follow these steps to deploy the Counter contract using Remix.
+
+1. Ensure that your injected wallet (such as MetaMask) is connected to the network you intend to deploy to.
+2. In Remix, input the Socket address into the Counter contract’s constructor parameter field.
+3. Click ‘Deploy’ to deploy the Counter contract onto the network.
+4. Repeat the process for the other chain you wish to deploy to.
+
+:::success Deployment Success
+Congratulations! You've now deployed the Counter contract to the blockchain. It's ready to send and receive cross-chain messages!
+:::
+
+### Configuring Plugs
+
+After deploying your Counter contracts, the next essential step is to connect them, enabling cross-chain interactions. The `connect` function is crucial in establishing this connection, ensuring the Counter plugs on different chains can communicate seamlessly.
+
+#### Parameters for the `connect` Function
+
+The parameters vary depending on the chain. Here’s a breakdown for both Polygon and Optimism.
+
+#### For Polygon
+
+| Parameter           | Value                                      |
+| ------------------- | ------------------------------------------ |
+| siblingChainSlug    | 10                                         |
+| siblingPlug         | Address of Counter on Optimism             |
+| inboundSwitchboard  | 0x2521b29FD8d3787Ab42141f55F6b462E6115C737 |
+| outboundSwitchboard | 0x2521b29FD8d3787Ab42141f55F6b462E6115C737 |
+
+#### For Optimism
+
+| Parameter           | Value                                      |
+| ------------------- | ------------------------------------------ |
+| siblingChainSlug    | 137                                        |
+| siblingPlug         | Address of Counter on Polygon              |
+| inboundSwitchboard  | 0x8654cB74011C9972dd63Ed691d310e1BAA85Fe9E |
+| outboundSwitchboard | 0x8654cB74011C9972dd63Ed691d310e1BAA85Fe9E |
+
+:::tip Switchboard Addresses
+Refer to the [official documentation](https://developer.socket.tech/dev-resources/deployment-addresses) for switchboard addresses on other chains.
+:::
+
+### Executing the Connection Command
+
+#### Foundry `connect`
+
+Execute the following command for both contracts, replacing the placeholders with the appropriate values:
+
+```shell
+cast send <ADDRESS_OF_COUNTER> --rpc-url <RPC> \
+--private-key <PRIVATE_KEY> \
+"connect(uint32,address,address,address)" \
+<SIBLING_CHAIN_SLUG> <ADDRESS_OF_DESTINATION_ON_SENDING_CHAIN> <INBOUND_SWITCHBOARD> <OUTBOUND_SWITCHBOARD>
+```
+
+#### Remix `connect`
+
+1. Navigate to the deployed Counter contract.
+2. Call the `connect` function, inputting the details of its counterpart on the other chain.
+
+:::info Connectivity
+The `connect` function is crucial. It bridges your contract to a counterpart on another chain, opening pathways for cross-chain messages.
+:::
+
+### Validation
+
+Upon executing the connection commands, validate the connection by calling the `getPlugConfig` method on Socket. It returns the configuration of the plug, confirming a successful connection. Now your contracts are ready to exchange messages across chains!
+
+#### Foundry Validation
+
+Execute the following command for both contracts, replacing the placeholders with the appropriate values:
+
+```shell
+cast call <SOCKET_CONTRACT_ADDRESS> --rpc-url <RPC_URL> \
+"getPlugConfig(address,uint32)" \
+<PLUG_CONTRACT_ADDRESS> <SIBLING_CHAIN_SLUG>
+```
+
+The command will return the configuration details of the plug, including the addresses of the sibling plug, inbound and outbound switchboards, capacitor, and decapacitor. Ensure these values match your configuration.
+
+#### Remix Validation
+
+1. Navigate to the deployed Socket contract within the Remix interface.
+2. Call `getPlugConfig`:
+   - Enter the Counter plug contract address in the `plugAddress_` field.
+   - Input the chain ID into the `siblingChainSlug_` field.
+   - Click on the `Call` button.
+3. The values for the sibling plug, inbound and outbound switchboards, capacitor, and decapacitor will be displayed in the Remix interface. Validate these values to ensure correct cross-chain communication setup.
+
+### Updating the Counter Value Across Chains
+
+:::info Preparing the Command
+Prepare to input the appropriate parameters. The `setRemoteNumber` function requires the new counter value and the target chain's slug.
+:::
+
+#### Foundry `setRemoteNumber`
+
+Execute the following command, replacing the placeholders with the appropriate values:
+
+```shell
+cast send <ADDRESS_OF_COUNTER_ON_SENDING_CHAIN> --rpc-url <SENDING_RPC> \
+--private-key <PRIVATE_KEY> \
+"setRemoteNumber(uint256,uint32)" \
+55 137
+```
+
+#### Remix `setRemoteNumber`
+
+1. Navigate to the Counter contract deployed on Optimism within Remix.
+2. Locate the setRemoteNumber function.
+3. Enter the values 55 for the new number and 137 as the chain slug.
+4. Execute the function.
+
+### Monitoring the Message Transit
+
+:::tip Real-Time Tracking
+Leverage the Status Tracking API to monitor the message in real time as it travels between the chains.
+:::
+
+Utilize the [Status Tracking API](../dev-resources/APIReference/Track.md) and follow the URL pattern below, ensuring to replace `<YourTxHash>` with the actual transaction hash:
+
+```plaintext
+https://prod.dlapi.socket.tech/messages-from-tx?srcChainSlug=10&srcTxHash=<YourTxHash>
+```
+
+### Verifying the Update
+
+:::success Confirmation Steps
+Verify the operation’s success by checking the updated Counter value on the Polygon network.
+:::
+
+Upon the successful delivery and processing of the message, the Counter value on Polygon should now reflect the new number. This demonstrates a successful cross-chain operation, where a contract on one blockchain network (Optimism) has effectively updated the state of a contract on another network (Polygon).
+
+#### Foundry Verification
+
+Execute the following command, replacing the placeholders with the appropriate values:
+
+```shell
+cast call <ADDRESS_OF_COUNTER_ON_RECEIVING_CHAIN> --rpc-url <RECEIVING_RPC> \
+"number(uint256)"
+```
+
+This command will query the current value of the counter on the Polygon network.
+
+#### Remix Verification
+
+1. Navigate to the deployed `Counter` contract on Polygon within the Remix interface.
+2. Locate and click on the `number` function to retrieve the current counter value.
+
+:::info Expected Outcome
+The counter value returned should be 55, confirming the success of the cross-chain operation.
+:::
+
+### Complete Workflow
+
+1. **Setting Up the Development Environment:**
+
+   - Clone the SocketDL examples repository or use Remix to directly load the Counter contract.
+   - Decide between Foundry for command-line interaction or Remix for a GUI experience.
+
+2. **Code Walkthrough:**
+
+   - Examine the Counter Contract and understand its inheritance from the PlugBase contract for cross-chain capabilities.
+   - Focus on key functions like `setRemoteNumber` for sending messages and `_receiveInbound` for receiving messages across chains.
+
+3. **Deploying the Contract:**
+
+   - Retrieve the Socket address specific to your network from the deployments documentation.
+   - Use Foundry or Remix to deploy the Counter contract, ensuring the Socket address is correctly inputted in the constructor arguments.
+
+4. **Configuring Plugs:**
+
+   - Utilize the `connect` function to bridge the Counter contract to its counterpart on another chain.
+   - Use Foundry or Remix to execute the connection command, inputting the appropriate parameters like sibling chain slug, inbound, and outbound switchboard addresses.
+
+5. **Validation:**
+
+   - Confirm the successful connection by calling the `getPlugConfig` method on Socket. The returned configuration validates the plug’s readiness for cross-chain messaging.
+
+6. **Updating the Counter Value Across Chains:**
+
+   - Initiate a cross-chain counter update using the `setRemoteNumber` function.
+   - Foundry users execute a command-line instruction, while Remix users directly interact with the function in the Remix interface.
+   - Monitor the message transit in real-time via the Status Tracking API to observe the message’s journey between chains.
+
+7. **Verifying the Update:**
+
+   - Confirm the update’s success on the Polygon network by checking the Counter value, which should now be 55.
+   - Foundry users execute another command-line instruction to retrieve the counter value, while Remix users can directly click on the `number` function in the interface.
+
+8. **Outcome:**
+
+   - The successful update of the Counter value on Polygon demonstrates the effectiveness of SocketDL’s cross-chain capabilities.
+   - The Counter contract on Optimism effectively communicates and alters the state of the Counter contract on Polygon, marking a successful cross-chain interaction.
+
+9. **Closing:**
+   - The participants have now gained hands-on experience in deploying, configuring, and interacting with cross-chain contracts using SocketDL, marking the completion of the tutorial.
+
+:::note You're Plugged!
+
+You've successfully built and deployed a Plug! Explore more examples & participate in Surge!
+
+:::
