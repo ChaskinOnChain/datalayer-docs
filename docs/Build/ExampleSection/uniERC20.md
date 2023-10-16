@@ -41,41 +41,41 @@ Here’s a simplified explanation:
 Here’s the core code snippet illustrating the `uniTransfer` and `_uniReceive` functions:
 
 ```javascript
-    /* Burns user tokens on source chain and sends mint message on destination chain */
-    function uniTransfer(
-        uint256 _destChainSlug,
-        address _destReceiver,
-        uint256 _amount
-    ) external payable {
-        _burn(msg.sender, _amount);
+/* Burns user tokens on source chain and sends mint message on destination chain */
+function uniTransfer(
+    uint256 _destChainSlug,
+    address _destReceiver,
+    uint256 _amount
+) external payable {
+    _burn(msg.sender, _amount);
 
-        bytes memory payload = abi.encode(msg.sender, _destReceiver, _amount);
+    bytes memory payload = abi.encode(msg.sender, _destReceiver, _amount);
 
-        ISocket(socket).outbound{value: msg.value}(
-            _destChainSlug,
-            destGasLimits[_destChainSlug],
-            bytes32(0),
-            bytes32(0),
-            payload
-        );
+    ISocket(socket).outbound{value: msg.value}(
+        _destChainSlug,
+        destGasLimits[_destChainSlug],
+        bytes32(0),
+        bytes32(0),
+        payload
+    );
 
-        emit UniTransfer(_destChainSlug, _destReceiver, _amount);
-    }
+    emit UniTransfer(_destChainSlug, _destReceiver, _amount);
+}
 
-    /* Decodes destination data and mints equivalent tokens burnt on source chain */
-    function _uniReceive(
-        uint256 siblingChainSlug_,
-        bytes calldata payload_
-    ) internal {
-       (address _sender, address _receiver, uint256 _amount) = abi.decode(
-            payload_,
-            (address, address, uint256)
-        );
+/* Decodes destination data and mints equivalent tokens burnt on source chain */
+function _uniReceive(
+    uint256 siblingChainSlug_,
+    bytes calldata payload_
+) internal {
+    (address _sender, address _receiver, uint256 _amount) = abi.decode(
+        payload_,
+        (address, address, uint256)
+    );
 
-        _mint(_receiver, _amount);
+    _mint(_receiver, _amount);
 
-        emit UniReceive(_sender, _receiver, _amount, siblingChainSlug_);
-    }
+    emit UniReceive(_sender, _receiver, _amount, siblingChainSlug_);
+}
 ```
 
 ## Practical Use Cases

@@ -34,12 +34,12 @@ ISocket socket = ISocket(_address); // Retrieve the Socket address for your netw
 uint32 remoteChainSlug = 1333; // Replace with the actual ChainSlug of the target network
 uint32 defaultGasLimit = 1000000; // Set an appropriate gas limit for the transaction
 
-    function sendHelloWorld() external payable {
-        bytes memory payload = abi.encode("Hello World");  // Encode the message into a payload
-        require(msg.value >= minFees, "Insufficient fees");  // Ensure adequate fees are provided
+function sendHelloWorld() external payable {
+   bytes memory payload = abi.encode("Hello World");  // Encode the message into a payload
+   require(msg.value >= minFees, "Insufficient fees");  // Ensure adequate fees are provided
 
-        socket.outbound{value: msg.value}(remoteChainSlug, defaultGasLimit, bytes32(0), bytes32(0), payload);  // Send the message
-    }
+   socket.outbound{value: msg.value}(remoteChainSlug, defaultGasLimit, bytes32(0), bytes32(0), payload);  // Send the message
+}
 ```
 
 ### Message Transmission Confirmation

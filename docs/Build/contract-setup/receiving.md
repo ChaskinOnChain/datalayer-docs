@@ -42,9 +42,7 @@ bytes calldata payload*
 ) external payable {
 // Ensure the call is made by the Socket only
 require(msg.sender == address(socket), "Caller is not the Socket");
-
     // Decode and process the payload
     number = abi.decode(payload_, (uint256));  // Adjust the data type as per your requirements
-
 }
 ```

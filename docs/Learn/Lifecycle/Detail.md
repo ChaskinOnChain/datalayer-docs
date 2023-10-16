@@ -14,7 +14,7 @@ In this section, we dive deeper into the main interactions between Plugs and Soc
 
 <img src="/img/ConnectToDL.png" />
 
-Plugs serve as an integral component in the Socket ecosystem, initiating the bridge for cross-chain communication. To ensure the seamless interaction of messaging across diverse blockchains, a Plug must first be "plugged" into Socket. This connection entails the sharing of configuration details essential for establishing a reliable and secure communication channel.
+[`Plugs`](./Components/Plugs) serve as an integral component in the Socket ecosystem, initiating the bridge for cross-chain communication. To ensure the seamless interaction of messaging across diverse blockchains, a Plug must first be "plugged" into Socket. This connection entails the sharing of configuration details essential for establishing a reliable and secure communication channel.
 
 #### Connection Process
 
@@ -31,7 +31,7 @@ Plugs serve as an integral component in the Socket ecosystem, initiating the bri
 #### Specific Considerations
 
 - **Switchboard Selection:**
-  Plugs are equipped with the flexibility to employ different Switchboards based on their unique use cases and security prerequisites. Registering a Switchboard is completely permissionless. Each Switchboard comes with its distinct set of criteria for message verification and processing, aligning with the varied requirements of diverse applications.
+  Plugs are equipped with the flexibility to employ different [`Switchboards`](./Components/Switchboards) based on their unique use cases and security prerequisites. Registering a Switchboard is completely permissionless. Each Switchboard comes with its distinct set of criteria for message verification and processing, aligning with the varied requirements of diverse applications.
 
 - **Connection Limitation:**
   Each Plug is restricted to connect to a single Plug on each sibling chain. This design ensures a streamlined and focused communication channel. If a new connection is established with a different sibling Plug on the same chain, it overrides the previous configuration, ensuring that each Plug maintains a singular, focused connection for enhanced security and efficiency.
@@ -58,7 +58,7 @@ Connected Plugs are ready to initiate state changes across chains. The sending P
 3. **Message Encoding and Storage:**
 
    - Socket encodes and hashes key parameters into a message. Each hash, a unique identifier, ensures message integrity and traceability.
-   - The hashed message is stored in a `Capacitor`, a secure vault that aggregates messages destined for specific chains, optimizing gas efficiency through batching.
+   - The hashed message is stored in a [`Capacitor`](./Components/Capacitor), a secure vault that aggregates messages destined for specific chains, optimizing gas efficiency through batching.
 
 4. **Message Sealing:**
    - Off-chain transmitters periodically invoke the `seal` method on the Capacitor. This method transforms the aggregated messages into a `Packet`, sealed and ready for transit.

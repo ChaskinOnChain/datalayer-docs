@@ -8,7 +8,7 @@ Lifecycle of a Transaction: Sending a Message from Optimism to Polygon
 
 ### 1. **Initiating the Transaction**
 
-Alice wants to send a message from a contract on Optimism to update a state variable on Polygon to say "Hi World". She starts by interacting with a contract on Optimism that calls a `Plug` that's plugged in to a contract on Polygon and connected to the Socket contract on Optimism. She prepares her message payload and is ready to initiate the cross-chain communication.
+Alice wants to send a message from a contract on Optimism to update a state variable on Polygon to say "Hi World". She starts by interacting with a contract on Optimism that calls a [`Plug`](./Components/Plugs) that's plugged in to a contract on Polygon and connected to the Socket contract on Optimism. She prepares her message payload and is ready to initiate the cross-chain communication.
 
 ### 2. **Estimating the Fees**
 
@@ -16,7 +16,7 @@ Alice ensures the transaction has adequate fees. She uses an off-chain Fee Estim
 
 ### 3. **Message Storage in the Capacitor**
 
-Alice’s message, encoded and hashed, is stored in a `Capacitor` on Optimism. The encapsulation of Alice's message in the Capacitor is timestamped and awaits the formation of a Packet.
+Alice’s message, encoded and hashed, is stored in a [`Capacitor`](./Components/Capacitor) on Optimism. The encapsulation of Alice's message in the Capacitor is timestamped and awaits the formation of a Packet.
 
 :::info
 The Capacitor acts as an interim storage for messages before they are batched into Packets. This step is crucial for optimizing gas performance and ensures that messages are securely held before they embark on their journey across the chains.
@@ -24,7 +24,7 @@ The Capacitor acts as an interim storage for messages before they are batched in
 
 ### 4. **Forming the Packet**
 
-The off-chain `Transmitters` seal the Capacitor, transforming Alice’s and other stored messages into a `Packet`. Alice’s message is securely contained within this Packet, identifiable and retrievable.
+The off-chain `Transmitters` seal the Capacitor, transforming Alice’s and other stored messages into a [`Packet`](./Components/Packet). Alice’s message is securely contained within this Packet, identifiable and retrievable.
 
 ### 5. **Packet Transfer and Proposal**
 
@@ -36,7 +36,7 @@ The signature is a hallmark of authenticity, ensuring that messages remain untam
 
 ### 6. **Verification Process**
 
-The Fast `Switchboard`, set with a 3-minute verification window, begins the authorization process. `Watchers` oversee this process, ensuring each message, including Alice's, is authenticated. The Fast Switchboard systematically confirms the validity of Alice’s message within the Packet.
+The Fast [`Switchboard`](./Components/Switchboard), set with a 3-minute verification window, begins the authorization process. `Watchers` oversee this process, ensuring each message, including Alice's, is authenticated. The Fast Switchboard systematically confirms the validity of Alice’s message within the Packet.
 
 :::info
 The developer chose the Fast Switchboard from the options provided by Socket Labs. However, the protocol’s design allows for complete flexibility in this choice. Registering a Switchboard is entirely permissionless, enabling developers to create and use their custom Switchboards tailored to their specific needs and preferences.

@@ -44,29 +44,29 @@ Copy the provided code into [Remix](https://remix.ethereum.org/) or your favorit
 pragma solidity ^0.8.0;
 
 interface ISocket {
-    function outbound(
-        uint32 remoteChainSlug_,
-        uint256 minMsgGasLimit_,
-        bytes32 executionParams_,
-        bytes32 transmissionParams_,
-        bytes calldata payload_
-    ) external payable returns (bytes32 msgId);
+function outbound(
+    uint32 remoteChainSlug_,
+    uint256 minMsgGasLimit_,
+    bytes32 executionParams_,
+    bytes32 transmissionParams_,
+    bytes calldata payload_
+) external payable returns (bytes32 msgId);
 
-    function connect(
-        uint32 siblingChainSlug_,
-        address siblingPlug_,
-        address inboundSwitchboard_,
-        address outboundSwitchboard_
-    ) external;
+function connect(
+    uint32 siblingChainSlug_,
+    address siblingPlug_,
+    address inboundSwitchboard_,
+    address outboundSwitchboard_
+) external;
 
-    function getMinFees(
-        uint256 minMsgGasLimit_,
-        uint256 payloadSize_,
-        bytes32 executionParams_,
-        bytes32 transmissionParams_,
-        uint32 remoteChainSlug_,
-        address plug_
-    ) external view returns (uint256 totalFees);
+function getMinFees(
+    uint256 minMsgGasLimit_,
+    uint256 payloadSize_,
+    bytes32 executionParams_,
+    bytes32 transmissionParams_,
+    uint32 remoteChainSlug_,
+    address plug_
+) external view returns (uint256 totalFees);
 }
 
 contract HelloWorld {
@@ -97,39 +97,39 @@ We will now declare our state variables, events, and modifiers to manage message
 Add the following code to the `HelloWorld` contract:
 
 ```javascript
-    string public message = "Hello World";
-    address owner;
+string public message = "Hello World";
+address owner;
 
-    /**
-     * @dev Hardcoded values for Goerli
-     */
-    uint256 destGasLimit = 100000; // Gas cost of sending "Hello World" on Mumbai
-    uint32 public remoteChainSlug = 80001; // Mumbai testnet chain ID
-    address public socket = 0xe37D028a77B4e6fCb05FC75EBa845752cD62A0AA; // Socket Address on Goerli
-    address public inboundSwitchboard =
-        0xd59d596B7C7cB4593F61bbE4A82C1E943C64558D; // FAST Switchboard on Goerli
-    address public outboundSwitchboard =
-        0xd59d596B7C7cB4593F61bbE4A82C1E943C64558D; // FAST Switchboard on Goerli
+/**
+ * @dev Hardcoded values for Goerli
+ */
+uint256 destGasLimit = 100000; // Gas cost of sending "Hello World" on Mumbai
+uint32 public remoteChainSlug = 80001; // Mumbai testnet chain ID
+address public socket = 0xe37D028a77B4e6fCb05FC75EBa845752cD62A0AA; // Socket Address on Goerli
+address public inboundSwitchboard =
+    0xd59d596B7C7cB4593F61bbE4A82C1E943C64558D; // FAST Switchboard on Goerli
+address public outboundSwitchboard =
+    0xd59d596B7C7cB4593F61bbE4A82C1E943C64558D; // FAST Switchboard on Goerli
 
-    event MessageSent(uint32 destChainSlug, string message);
+event MessageSent(uint32 destChainSlug, string message);
 
-    event MessageReceived(uint32 srcChainSlug, string message);
+event MessageReceived(uint32 srcChainSlug, string message);
 
-    modifier isOwner() {
-        require(msg.sender == owner, "Not owner");
-        _;
-    }
+modifier isOwner() {
+    require(msg.sender == owner, "Not owner");
+    _;
+}
 
-    modifier isSocket() {
-        require(msg.sender == socket, "Not Socket");
-        _;
-    }
+modifier isSocket() {
+    require(msg.sender == socket, "Not Socket");
+    _;
+}
 
-    error InsufficientFees();
+error InsufficientFees();
 
-    constructor() {
-        owner = msg.sender;
-    }
+constructor() {
+    owner = msg.sender;
+}
 ```
 
 ### Step 3 : Config Functions
@@ -143,14 +143,14 @@ This function utilizes the `connect` method from the `ISocket` interface, linkin
 Add the `connectPlug` function to your `HelloWorld` contract:
 
 ```javascript
-    function connectPlug(address siblingPlug_) external isOwner {
-        ISocket(socket).connect(
-            remoteChainSlug,
-            siblingPlug_,
-            inboundSwitchboard,
-            outboundSwitchboard
-        );
-    }
+function connectPlug(address siblingPlug_) external isOwner {
+    ISocket(socket).connect(
+        remoteChainSlug,
+        siblingPlug_,
+        inboundSwitchboard,
+        outboundSwitchboard
+    );
+}
 ```
 
 :::info Connectivity
@@ -172,38 +172,38 @@ This helper function retrieves the minimum fees required for the message, ensuri
 Insert the following code to enable message sending:
 
 ```javascript
-    function sendMessage() external payable {
-        bytes memory payload = abi.encode(message);
+function sendMessage() external payable {
+    bytes memory payload = abi.encode(message);
 
-        uint256 totalFees = _getMinimumFees(destGasLimit, payload.length);
+    uint256 totalFees = _getMinimumFees(destGasLimit, payload.length);
 
-        if (msg.value < totalFees) revert InsufficientFees();
+    if (msg.value < totalFees) revert InsufficientFees();
 
-        ISocket(socket).outbound{value: msg.value}(
+    ISocket(socket).outbound{value: msg.value}(
+        remoteChainSlug,
+        destGasLimit,
+        bytes32(0),
+        bytes32(0),
+        payload
+    );
+
+    emit MessageSent(remoteChainSlug, message);
+}
+
+function _getMinimumFees(
+    uint256 minMsgGasLimit_,
+    uint256 payloadSize_
+) internal view returns (uint256) {
+    return
+        ISocket(socket).getMinFees(
+            minMsgGasLimit_,
+            payloadSize_,
+            bytes32(0),
+            bytes32(0),
             remoteChainSlug,
-            destGasLimit,
-            bytes32(0),
-            bytes32(0),
-            payload
+            address(this)
         );
-
-        emit MessageSent(remoteChainSlug, message);
-    }
-
-    function _getMinimumFees(
-        uint256 minMsgGasLimit_,
-        uint256 payloadSize_
-    ) internal view returns (uint256) {
-        return
-            ISocket(socket).getMinFees(
-                minMsgGasLimit_,
-                payloadSize_,
-                bytes32(0),
-                bytes32(0),
-                remoteChainSlug,
-                address(this)
-            );
-    }
+}
 ```
 
 ### Step 5 : Receiving Messages
@@ -221,21 +221,21 @@ This internal function updates the `message` state variable with the received me
 Here’s the code snippet to enable message receiving:
 
 ```javascript
-    function _receiveMessage(
-        uint32 _srcChainSlug,
-        string memory _message
-    ) internal {
-        message = _message;
-        emit MessageReceived(_srcChainSlug, _message);
-    }
+function _receiveMessage(
+    uint32 _srcChainSlug,
+    string memory _message
+) internal {
+    message = _message;
+    emit MessageReceived(_srcChainSlug, _message);
+}
 
-    function inbound(
-        uint32 srcChainSlug_,
-        bytes calldata payload_
-    ) external isSocket {
-        string memory _message = abi.decode(payload_, (string));
-        _receiveMessage(srcChainSlug_, _message);
-    }
+function inbound(
+    uint32 srcChainSlug_,
+    bytes calldata payload_
+) external isSocket {
+    string memory _message = abi.decode(payload_, (string));
+    _receiveMessage(srcChainSlug_, _message);
+}
 ```
 
 ### Step 6: Deploying Contracts

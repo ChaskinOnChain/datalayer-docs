@@ -45,25 +45,25 @@ Call the `connect` method on the Socket to configure the Plugs on both chains. U
 Here is an example demonstrating the connection process:
 
 ```javascript
-    ISocket socket = ISocket(socket_address);
+ISocket socket = ISocket(socket_address);
 
-    function connectToSocket(
-        uint32 siblingChainSlug,
-        address siblingPlug,
-        address inboundSwitchboard,
-        address outboundSwitchboard
-    ) external {
-        // ensure its permissioned
-        require(msg.sender == AUTHORISED_CONNECTOR, "Caller is not authorised to make make connections");
+function connectToSocket(
+    uint32 siblingChainSlug,
+    address siblingPlug,
+    address inboundSwitchboard,
+    address outboundSwitchboard
+) external {
+    // ensure its permissioned
+    require(msg.sender == AUTHORISED_CONNECTOR, "Caller is not authorised to make make connections");
 
-        // finally just call the socket to connect
-        socket.connect(
-            siblingChainSlug,
-            siblingPlug,
-            inboundSwitchboard,
-            outboundSwitchboard
-        );
-  }
+    // finally just call the socket to connect
+    socket.connect(
+        siblingChainSlug,
+        siblingPlug,
+        inboundSwitchboard,
+        outboundSwitchboard
+    );
+}
 ```
 
 ## Step 4: Verify the Connection

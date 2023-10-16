@@ -41,39 +41,37 @@ Key steps include:
 Below is the integral code snippet depicting the `uniTransfer` and `_uniReceive` functions:
 
 ```javascript
+/* Transfers tokens between chains */
+function uniTransfer(
+    uint256 _destChainSlug,
+    address _destReceiver,
+    uint256 tokenId
+) external payable {
+    _burn(tokenId);
 
-    /* Transfers tokens between chains */
-    function uniTransfer(
-        uint256 _destChainSlug,
-        address _destReceiver,
-        uint256 tokenId
-    ) external payable {
-        _burn(tokenId);
+    bytes memory payload = abi.encode(msg.sender, _destReceiver, tokenId);
 
-        bytes memory payload = abi.encode(msg.sender, _destReceiver, tokenId);
+    ISocket(socket).outbound{value: msg.value}(
+        _destChainSlug,
+        destGasLimits[_destChainSlug],
+        bytes32(0),
+        bytes32(0),
+        payload
+    );
 
-        ISocket(socket).outbound{value: msg.value}(
-            _destChainSlug,
-            destGasLimits[_destChainSlug],
-            bytes32(0),
-            bytes32(0),
-            payload
-        );
+    emit UniTransfer(_destChainSlug, _destReceiver, tokenId);
+}
 
-        emit UniTransfer(_destChainSlug, _destReceiver, tokenId);
-    }
+function _uniReceive(
+    uint256 _siblingChainSlug,
+    address _sender,
+    address _receiver,
+    uint256 _tokenId
+) internal {
+    _safeMint(_receiver, _tokenId);
 
-    function _uniReceive(
-        uint256 _siblingChainSlug,
-        address _sender,
-        address _receiver,
-        uint256 _tokenId
-    ) internal {
-        _safeMint(_receiver, _tokenId);
-
-        emit UniReceive(_sender, _receiver, _tokenId, _siblingChainSlug);
-    }
-
+    emit UniReceive(_sender, _receiver, _tokenId, _siblingChainSlug);
+}
 ```
 
 ## Practical Applications
