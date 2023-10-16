@@ -1,4 +1,8 @@
 {
   "label": "Messaging Latency",
-  "position": 9
+  "position": 9,
+  "link": {
+    "type": "generated-index",
+    "description": "Messaging Latency Using The Socket Switchboards"
+  }
 }

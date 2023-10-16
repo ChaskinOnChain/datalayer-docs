@@ -28,7 +28,7 @@ Each stored message in the Capacitor is hashed, ensuring uniqueness and traceabi
 
 Executors invoke the `execute` function post-verification. Collaborating with the Capacitor and decapacitor, individual messages are extracted for delivery. This intricate process ensures the security and efficiency of message transit across chains.
 
-## CapacitorFactory
+### CapacitorFactory
 
 CapacitorFactory is an upgradable contract listing the different kinds of available Capacitors. Its upgradability doesn’t impact the security of messages. Each type of Capacitor is embedded into the switchboard and immune to any subsequent upgrades to the CapacitorFactory.
 
@@ -38,7 +38,7 @@ For more details around access control and ownership of the CapacitorFactory [co
 
 ### Capacitor Insights
 
-The storage of messages in packet form and the native batching of payloads optimize gas performance. The Socket’s role is to encode key parameters into a message, hash the encoded data, and then store it in the Capacitor until it's ready for emission.
+The storage of messages in packet form and the native batching of payloads optimize gas performance. Socket’s role is to encode key parameters into a message, hash the encoded data, and then store it in the Capacitor until it's ready for emission.
 
 Transmitters, functioning as off-chain entities, seal messages within capacitors, transforming them into a Packet, and then sign the Packet. The Packet is released when the transmitter calls the `sealPacket` method on the capacitor, marking the readiness of the messages for inter-chain transit.
 
